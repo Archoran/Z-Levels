@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
-using HarmonyLib;
-using Multiplayer.API;
 using Verse;
 
 namespace ZLevels
@@ -298,18 +293,18 @@ namespace ZLevels
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void TeleportThing(Thing thing, Map map, IntVec3 position)
+        public static void TeleportThing(this Thing thing, Map map, IntVec3 position)
         {
             //ZLogger.Message($"Instant Teleporting {thing} to {map} - {position}");
-            var value = (sbyte)Find.Maps.IndexOf(map);
-            if (thing.mapIndexOrState != value)
+            sbyte value = (sbyte) Find.Maps.IndexOf(map);
+            if (thing.MapIndexOrState() != value)
             {
-                thing.mapIndexOrState = value;
+                thing.MapIndexOrState() = value;
             }
 
-            if (thing.positionInt != position)
+            if (thing.PositionInt() != position)
             {
-                thing.positionInt = position;
+                thing.PositionInt() = position;
             }
         }
 

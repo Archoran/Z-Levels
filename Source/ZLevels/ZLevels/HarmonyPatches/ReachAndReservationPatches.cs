@@ -22,11 +22,11 @@ namespace ZLevels
     public class LocalTargetInfo_Constructor_Patch
     {
         public static JobTracker curPawnJobTracker;
-        private static void Postfix(LocalTargetInfo __instance)
+        private static void Postfix(IntVec3 ___cellInt)
         {
-            if (curPawnJobTracker != null && __instance.cellInt.IsValid)
+            if (curPawnJobTracker != null && ___cellInt.IsValid)
             {
-                curPawnJobTracker.lookedAtLocalCellMap[__instance.cellInt] = ZUtils.currentLookedIntoMap;
+                curPawnJobTracker.lookedAtLocalCellMap[___cellInt] = ZUtils.currentLookedIntoMap;
                 //ZLogger.Message($"{curPawnJobTracker.pawn} is looking into {__instance.cellInt} - {ZUtils.currentLookedIntoMap}");//, stacktrace: {new StackTrace().ToString()}");
             }
         }
@@ -37,39 +37,39 @@ namespace ZLevels
     {
         private static Map oldMap;
         private static IntVec3 oldPosition;
-        private static bool Prefix(ref bool __result, Reachability __instance, IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParams, out bool __state)
+        private static bool Prefix(ref bool __result, Reachability __instance, Map ___map, IntVec3 start, LocalTargetInfo dest, PathEndMode peMode, TraverseParms traverseParams, out bool __state)
         {
             __state = false;
             var pawn = traverseParams.pawn;
             if (pawn != null)
             {
-                if (dest.HasThing && dest.thingInt.Map != null)
+                if (dest.HasThing && dest.Thing.Map != null)
                 {
-                    if (dest.thingInt.Map != pawn.Map)
+                    if (dest.Thing.Map != pawn.Map)
                     {
-                        var cellToTeleport = ZUtils.GetCellToTeleportFrom(pawn.Map, pawn.Position, dest.thingInt.Map);
+                        var cellToTeleport = ZUtils.GetCellToTeleportFrom(pawn.Map, pawn.Position, dest.Thing.Map);
                         var cell = cellToTeleport.IsValid ? cellToTeleport : pawn.Position;
 
                         __state = true;
                         oldMap = pawn.Map;
                         oldPosition = pawn.Position;
-                        ZUtils.TeleportThing(pawn, dest.thingInt.Map, cell);
-                        if (dest.thingInt.Map != __instance.map)
+                        ZUtils.TeleportThing(pawn, dest.Thing.Map, cell);
+                        if (dest.Thing.Map != ___map)
                         {
-                            __result = dest.thingInt.Map.reachability.CanReach(start, dest, peMode, traverseParams);
-                            ZLogger.Message($"CanReach: Used dest thing map reachability: __instance.map: {__instance.map}, pawn: {pawn}, thing: {dest.thingInt}, pawn.Map: {pawn.Map}, thing.Map: {dest.thingInt.Map}, result: {__result}");
+                            __result = dest.Thing.Map.reachability.CanReach(start, dest, peMode, traverseParams);
+                            ZLogger.Message($"CanReach: Used dest thing map reachability: __instance.map: {___map}, pawn: {pawn}, thing: {dest.Thing}, pawn.Map: {pawn.Map}, thing.Map: {dest.Thing.Map}, result: {__result}");
                             return false;
                         }
                     }
-                    else if (dest.thingInt.Map != __instance.map)
+                    else if (dest.Thing.Map != ___map)
                     {
-                        __result = dest.thingInt.Map.reachability.CanReach(start, dest, peMode, traverseParams);
-                        ZLogger.Message($"CanReach: Used dest thing map reachability: __instance.map: {__instance.map}, pawn: {pawn}, thing: {dest.thingInt}, pawn.Map: {pawn.Map}, thing.Map: {dest.thingInt.Map}, result: {__result}");
+                        __result = dest.Thing.Map.reachability.CanReach(start, dest, peMode, traverseParams);
+                        ZLogger.Message($"CanReach: Used dest thing map reachability: __instance.map: {___map}, pawn: {pawn}, thing: {dest.Thing}, pawn.Map: {pawn.Map}, thing.Map: {dest.Thing.Map}, result: {__result}");
                         return false;
                     }
                 }
                 else if (ZUtils.ZTracker.jobTracker.TryGetValue(pawn, out var jobTracker) && jobTracker.lookedAtLocalCellMap != null
-                    && jobTracker.lookedAtLocalCellMap.TryGetValue(dest.cellInt, out var mapDest))
+                    && jobTracker.lookedAtLocalCellMap.TryGetValue(dest.Cell, out var mapDest))
                 {
                     if (mapDest is null)
                     {
@@ -84,17 +84,17 @@ namespace ZLevels
                         oldMap = pawn.Map;
                         oldPosition = pawn.Position;
                         ZUtils.TeleportThing(pawn, mapDest, cell);
-                        if (mapDest != __instance.map)
+                        if (mapDest != ___map)
                         {
                             __result = mapDest.reachability.CanReach(start, dest, peMode, traverseParams);
-                            ZLogger.Message($"CanReach: Used lookedAtLocalCellMap map reachability: __instance.map: {__instance.map}, pawn: {pawn}, mapDest: {mapDest}, pawn.Map: {pawn.Map}, result: {__result}");
+                            ZLogger.Message($"CanReach: Used lookedAtLocalCellMap map reachability: __instance.map: {___map}, pawn: {pawn}, mapDest: {mapDest}, pawn.Map: {pawn.Map}, result: {__result}");
                             return false;
                         }
                     }
-                    else if (mapDest != __instance.map)
+                    else if (mapDest != ___map)
                     {
                         __result = mapDest.reachability.CanReach(start, dest, peMode, traverseParams);
-                        ZLogger.Message($"CanReach: Used lookedAtLocalCellMap map reachability: __instance.map: {__instance.map}, pawn: {pawn}, mapDest: {mapDest}, pawn.Map: {pawn.Map}, result: {__result}");
+                        ZLogger.Message($"CanReach: Used lookedAtLocalCellMap map reachability: __instance.map: {___map}, pawn: {pawn}, mapDest: {mapDest}, pawn.Map: {pawn.Map}, result: {__result}");
                         return false;
                     }
                 }
@@ -146,16 +146,16 @@ namespace ZLevels
             {
                 if (target.HasThing)
                 {
-                    if (target.thingInt.Map != null && target.thingInt.Map != claimant.Map)
+                    if (target.Thing.Map != null && target.Thing.Map != claimant.Map)
                     {
-                        var cellToTeleport = ZUtils.GetCellToTeleportFrom(claimant.Map, claimant.Position, target.thingInt.Map);
+                        var cellToTeleport = ZUtils.GetCellToTeleportFrom(claimant.Map, claimant.Position, target.Thing.Map);
                         var cell = cellToTeleport.IsValid ? cellToTeleport : claimant.Position;
 
                         __state = true;
                         oldMap = claimant.Map;
                         oldPosition = claimant.Position;
-                        ZUtils.TeleportThing(claimant, target.thingInt.Map, cell);
-                        ZLogger.Message($"Teleporting claimaint {claimant} to {target.thingInt.Map}");
+                        ZUtils.TeleportThing(claimant, target.Thing.Map, cell);
+                        ZLogger.Message($"Teleporting claimaint {claimant} to {target.Thing.Map}");
                         __result = claimant.CanReserve(target, maxPawns, stackCount, layer, ignoreOtherReservations);
                         return false;
                     }
@@ -163,7 +163,7 @@ namespace ZLevels
                 else
                 {
                     if (ZUtils.ZTracker.jobTracker.TryGetValue(claimant, out var jobTracker) && jobTracker.lookedAtLocalCellMap != null
-                        && jobTracker.lookedAtLocalCellMap.TryGetValue(target.cellInt, out var mapDest))
+                        && jobTracker.lookedAtLocalCellMap.TryGetValue(target.Cell, out var mapDest))
                     {
                         if (mapDest != null && mapDest != claimant.Map)
                         {
@@ -202,7 +202,7 @@ namespace ZLevels
                 var ZTracker = ZUtils.ZTracker;
                 if (claimant.RaceProps.Humanlike && ZTracker.jobTracker != null)
                 {
-                    var thing = target.thingInt;
+                    var thing = target.Thing;
                     if (thing != null)
                     {
                         foreach (var data in ZTracker.jobTracker)
@@ -213,23 +213,23 @@ namespace ZLevels
                             {
                                 foreach (var reservation in otherPawnJobTracker.reservedThings)
                                 {
-                                    if (reservation.thingInt == target.thingInt)
+                                    if (reservation.Thing == target.Thing)
                                     {
                                         var shouldChangeResult = !(otherPawn.jobs?.curDriver is JobDriver_TakeToBed);// || !(data.Key.jobs?.curDriver is JobDriver_LayDown));
                                         if (shouldChangeResult)
                                         {
                                             try
                                             {
-                                                ZLogger.Message("reservation.thingInt: " + reservation.thingInt + " - target.thingInt: " + target.thingInt);
+                                                ZLogger.Message("reservation.thingInt: " + reservation.Thing + " - target.thingInt: " + target.Thing);
                                                 ZLogger.Message(data.Key + " - 1 data.Value.mainJob: " + data.Value.mainJob);
                                                 ZLogger.Message(data.Key + " - 1 data.Key.CurJob: " + data.Key.CurJob);
-                                                ZLogger.Message(data.Key + " - 1 thing.Map.reservationManager.reservations.Any(x => x.Target.thingInt == thing && x.claimant == data.Key): " + thing.Map.reservationManager.reservations.Any(x => x.Target.thingInt == thing && x.claimant == data.Key));
+                                                ZLogger.Message(data.Key + " - 1 thing.Map.reservationManager.reservations.Any(x => x.Target.thingInt == thing && x.claimant == data.Key): " + thing.Map.reservationManager.ReservedBy(target, otherPawn));
                                             }
-                                            catch
+                                            catch (Exception ex)
                                             {
 
                                             }
-                                           if (otherPawn.Map == thing.Map && !thing.Map.reservationManager.reservations.Any(x => x.Target.thingInt == thing && x.claimant == otherPawn))
+                                            if (otherPawn.Map == thing.Map && !thing.Map.reservationManager.ReservedBy(target, otherPawn))
                                             {
                                                 ZLogger.Message($"PREVENTED ZTRACKER reservation disfunction: claimant: {claimant}, pawn: {data.Key}, thing: {thing}");
                                                 continue;
@@ -244,9 +244,9 @@ namespace ZLevels
                             }
                         }
                     }
-                    else if (ZTracker.jobTracker.TryGetValue(claimant, out var jobTracker) && jobTracker.lookedAtLocalCellMap.TryGetValue(target.cellInt, out var mapDest))
+                    else if (ZTracker.jobTracker.TryGetValue(claimant, out var jobTracker) && jobTracker.lookedAtLocalCellMap.TryGetValue(target.Cell, out var mapDest))
                     {
-                        var cell = target.cellInt;
+                        var cell = target.Cell;
                         foreach (var data in ZTracker.jobTracker)
                         {
                             var otherPawn = data.Key;
@@ -255,17 +255,17 @@ namespace ZLevels
                             {
                                 foreach (var reservation in otherPawnJobTracker.reservedCells)
                                 {
-                                    ZLogger.Message($"otherPawn: {otherPawn}, reservation: {reservation}, reservation.HasThing: {reservation.HasThing}, reservation.cellInt: {reservation.cellInt}, data.Value.lookedAtMap: {data.Value.mapDest}, cell: {cell}, jobTracker.lookedAtMap: {jobTracker.mapDest}");
-                                    if (reservation.cellInt == cell && otherPawnJobTracker.mapDest == jobTracker.mapDest)
+                                    ZLogger.Message($"otherPawn: {otherPawn}, reservation: {reservation}, reservation.HasThing: {reservation.HasThing}, reservation.cellInt: {reservation.Cell}, data.Value.lookedAtMap: {data.Value.mapDest}, cell: {cell}, jobTracker.lookedAtMap: {jobTracker.mapDest}");
+                                    if (reservation.Cell == cell && otherPawnJobTracker.mapDest == jobTracker.mapDest)
                                     {
                                         try
                                         {
                                             ZLogger.Message("claimant: " + claimant + " - " + otherPawn + " - 2 data.Value.mainJob: " + data.Value.mainJob);
                                             ZLogger.Message("claimant: " + claimant + " - " + otherPawn + " - 2 data.Key.CurJob: " + data.Key.CurJob);
-                                            ZLogger.Message("claimant: " + claimant + " - " + otherPawn + " - 2 jobTracker.lookedAtMap.reservationManager.reservations.Any(x => !x.Target.HasThing && x.Target.cellInt == cell && x.claimant == data.Key)): " + jobTracker.mapDest.reservationManager.reservations.Any(x => !x.Target.HasThing && x.Target.cellInt == cell && x.claimant == data.Key));
+                                            ZLogger.Message("claimant: " + claimant + " - " + otherPawn + " - 2 jobTracker.lookedAtMap.reservationManager.reservations.Any(x => !x.Target.HasThing && x.Target.cellInt == cell && x.claimant == data.Key)): " + jobTracker.mapDest.reservationManager.ReservedBy(target, otherPawn));
                                         }
-                                        catch { }
-                                        if (otherPawn.Map == jobTracker.mapDest && !jobTracker.mapDest.reservationManager.reservations.Any(x => !x.Target.HasThing && x.Target.cellInt == cell && x.claimant == otherPawn))
+                                        catch (Exception ex) { }
+                                        if (otherPawn.Map == jobTracker.mapDest && !jobTracker.mapDest.reservationManager.ReservedBy(target, otherPawn))
                                         {
                                             ZLogger.Message($"2 PREVENTED ZTRACKER reservation disfunction: claimant: {claimant}, pawn: {data.Key}, cell: {cell}");
                                             continue;

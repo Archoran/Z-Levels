@@ -119,12 +119,12 @@ namespace ZLevels
                 __result = true;
                 return false;
             }
-            else if (checkLevels && c != caster.positionInt)
+            else if (checkLevels && c != caster.Position)
             {
                 ZLogger.Message(caster + " - " + c + " - Return false: upper - " + c.GetFirstBuilding(upperMap) + " - " + c.GetTerrain(upperMap), true);
                 ZLogger.Message(caster + " - " + c + " - Return false: lower - " + c.GetFirstBuilding(lowerMap) + " - " + c.GetTerrain(lowerMap), true);
             }
-            else if (checkLevels && c == caster.positionInt)
+            else if (checkLevels && c == caster.Position)
             {
                 ZLogger.Message(c + " - Return true: upper - " + c.GetFirstBuilding(upperMap) + " - " + c.GetTerrain(upperMap), true);
                 ZLogger.Message(c + " - Return true: lower - " + c.GetFirstBuilding(lowerMap) + " - " + c.GetTerrain(lowerMap), true);
@@ -311,9 +311,9 @@ namespace ZLevels
                         }
                     }
                 }
-                if (resultingLine.dest.GetCover(map)?.def?.Fillage == FillCategory.Full)
+                if (resultingLine.Dest.GetCover(map)?.def?.Fillage == FillCategory.Full)
                 {
-                    ZLogger.Message("3: " + caster + " - " + resultingLine.dest + " - " + resultingLine.dest.GetCover(map) + " - " + map, true);
+                    ZLogger.Message("3: " + caster + " - " + resultingLine.Dest + " - " + resultingLine.Dest.GetCover(map) + " - " + map, true);
                     return false;
                 }
             }
@@ -330,9 +330,9 @@ namespace ZLevels
                         }
                     }
                 }
-                if (resultingLine.dest.GetCover(map)?.def?.Fillage == FillCategory.Full)
+                if (resultingLine.Dest.GetCover(map)?.def?.Fillage == FillCategory.Full)
                 {
-                    ZLogger.Message("5: " + caster + " - " + resultingLine.dest + " - " + resultingLine.dest.GetCover(map) + " - " + map, true);
+                    ZLogger.Message("5: " + caster + " - " + resultingLine.Dest + " - " + resultingLine.Dest.GetCover(map) + " - " + map, true);
                     return false;
                 }
             }
@@ -360,9 +360,9 @@ namespace ZLevels
                         }
                     }
                 }
-                if (resultingLine.dest.GetCover(map)?.def?.Fillage == FillCategory.Full)
+                if (resultingLine.Dest.GetCover(map)?.def?.Fillage == FillCategory.Full)
                 {
-                    ZLogger.Message("8: " + caster + " - " + resultingLine.dest + " - " + resultingLine.dest.GetCover(map) + " - " + map, true);
+                    ZLogger.Message("8: " + caster + " - " + resultingLine.Dest + " - " + resultingLine.Dest.GetCover(map) + " - " + map, true);
                     return false;
                 }
             }
@@ -379,9 +379,9 @@ namespace ZLevels
                         }
                     }
                 }
-                if (resultingLine.dest.GetCover(map)?.def?.Fillage == FillCategory.Full)
+                if (resultingLine.Dest.GetCover(map)?.def?.Fillage == FillCategory.Full)
                 {
-                    ZLogger.Message("10: " + caster + " - " + resultingLine.dest + " - " + resultingLine.dest.GetCover(map) + " - " + map, true);
+                    ZLogger.Message("10: " + caster + " - " + resultingLine.Dest + " - " + resultingLine.Dest.GetCover(map) + " - " + map, true);
                     return false;
                 }
             }

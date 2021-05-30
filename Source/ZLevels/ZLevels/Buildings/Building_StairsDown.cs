@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
-using HarmonyLib;
-using Multiplayer.API;
 using RimWorld;
-using RimWorld.Planet;
 using Verse;
 using Verse.AI;
 
@@ -69,7 +64,7 @@ namespace ZLevels
                         GenPlace.TryPlaceThing(stairsToSpawn, this.Position, mapBelow, ThingPlaceMode.Direct);
                         stairsToSpawn.SetFaction(this.Faction);
                     }
-                    FloodFillerFog.FloodUnfog(this.Position, mapBelow);
+                    //FloodFillerFog.FloodUnfog(this.Position, mapBelow);
                     mapBelow.fogGrid.FloodUnfogAdjacent(this.Position);
                 }
                 else if (mapBelow == this.Map)

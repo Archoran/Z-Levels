@@ -77,7 +77,7 @@ namespace ZLevels
                 ReCheckStairs(tile);
             }
         }
-
+        /*
         public void Select(object obj, bool playSound = true, bool forceDesignatorDeselect = true)
         {
             if (obj == null)
@@ -136,7 +136,7 @@ namespace ZLevels
                 SelectionDrawer.Notify_Selected(obj);
             }
             Find.Selector.selected = selected;
-        }
+        }*/
         public void CheckHotkeys()
         {
             bool keyDownEvent = ZLevelsDefOf.ZL_switchToUpperMap.KeyDownEvent;
@@ -433,7 +433,7 @@ namespace ZLevels
                 RefreshMapLists();
                 return true;
             }
-            return false;
+            //return false;
         }
 
 
@@ -467,7 +467,7 @@ namespace ZLevels
                         str += "targetQueueA.Map: " + t.Thing?.Map + "\n";
                     }
                 }
-                catch { }
+                catch (Exception ex) { }
                 str += "Job.targetQueueB: " + job.targetQueueB + "\n";
                 try
                 {
@@ -477,7 +477,7 @@ namespace ZLevels
                         str += "targetQueueB.Map: " + t.Thing?.Map + "\n";
                     }
                 }
-                catch { }
+                catch (Exception ex) { }
                 if (job.countQueue != null)
                 {
                     foreach (var c in job.countQueue)
@@ -493,10 +493,10 @@ namespace ZLevels
                         str += "countQueue: " + t + "\n";
                     }
                 }
-                catch { }
+                catch (Exception ex) { }
                 str += "------------------------\n";
             }
-            catch { };
+            catch (Exception ex) { };
             return str;
         }
 
@@ -1009,7 +1009,7 @@ namespace ZLevels
                                     ZLogger.Message("0 BEFORE job.targetQueueB.countQueue: " + this.jobTracker[pawn].mainJob.countQueue[i]);
                                 }
                             }
-                            catch { }
+                            catch (Exception ex) { }
 
                             Thing savedThing = pawn.carryTracker.CarriedThing;
                             ZLogger.Message(pawn + " trying to drop " + pawn?.carryTracker?.CarriedThing + " for " + job);
@@ -1039,7 +1039,7 @@ namespace ZLevels
                                     job.targetB = new LocalTargetInfo(newThing);
                                 }
                             }
-                            catch { };
+                            catch (Exception ex) { };
                             try
                             {
                                 for (int i = job.targetQueueA.Count - 1; i >= 0; i--)
@@ -1053,7 +1053,7 @@ namespace ZLevels
                                     }
                                 }
                             }
-                            catch { }
+                            catch (Exception ex) { }
                             try
                             {
                                 ZLogger.Message("--------------------------");
@@ -1079,7 +1079,7 @@ namespace ZLevels
                                     }
                                 }
                             }
-                            catch { }
+                            catch (Exception ex) { }
                             if (job != this.jobTracker[pawn].mainJob)
                             {
                                 try
@@ -1096,7 +1096,7 @@ namespace ZLevels
                                         this.jobTracker[pawn].mainJob.targetB = new LocalTargetInfo(newThing);
                                     }
                                 }
-                                catch { }
+                                catch (Exception ex) { }
                                 try
                                 {
                                     for (int i = this.jobTracker[pawn].mainJob.targetQueueA.Count - 1; i >= 0; i--)
@@ -1110,7 +1110,7 @@ namespace ZLevels
                                         }
                                     }
                                 }
-                                catch { }
+                                catch (Exception ex) { }
                                 try
                                 {
                                     for (int i = this.jobTracker[pawn].mainJob.targetQueueB.Count - 1; i >= 0; i--)
@@ -1125,7 +1125,7 @@ namespace ZLevels
                                         }
                                     }
                                 }
-                                catch { }
+                                catch (Exception ex) { }
                             }
                             var mainJob = this.jobTracker[pawn].mainJob;
 
@@ -1153,7 +1153,7 @@ namespace ZLevels
 
                                     }
                                 }
-                                catch { }
+                                catch (Exception ex) { }
 
                                 while (repeat && num < 100)
                                 {
@@ -1222,7 +1222,7 @@ namespace ZLevels
 
                                     }
                                 }
-                                catch { }
+                                catch (Exception ex) { }
                             }
                         }
                         ZLogger.Message(pawn + " TryMakePreToilReservations job " + job + " in " + this.GetMapInfo(pawn.Map));
@@ -1393,7 +1393,7 @@ namespace ZLevels
         {
             //ZLogger.Message("CHECK: trying to teleport " + thingToTeleport + " from " + thingToTeleport.Map + " to " + mapToTeleport, true);
             thingToTeleport.DeSpawn(DestroyMode.Vanish);
-            GenSpawn.Spawn(thingToTeleport, thingToTeleport.positionInt, mapToTeleport, WipeMode.Vanish);
+            GenSpawn.Spawn(thingToTeleport, thingToTeleport.PositionInt(), mapToTeleport, WipeMode.Vanish);
         }
 
         public void MovePawnToAnotherMap(Pawn pawnToTeleport, Map mapToTeleport)
@@ -1416,7 +1416,7 @@ namespace ZLevels
             pawnToTeleport.Map?.dynamicDrawManager.DeRegisterDrawable(pawnToTeleport);
             pawnToTeleport.Map?.mapPawns.DeRegisterPawn((Pawn)pawnToTeleport);
             
-            pawnToTeleport.mapIndexOrState = (sbyte)Find.Maps.IndexOf(mapToTeleport);
+            pawnToTeleport.MapIndexOrState() = (sbyte)Find.Maps.IndexOf(mapToTeleport);
             RegionListersUpdater.RegisterInRegions(pawnToTeleport, mapToTeleport);
             mapToTeleport.spawnedThings.TryAdd(pawnToTeleport);
             mapToTeleport.listerThings.Add(pawnToTeleport);
@@ -1499,7 +1499,7 @@ namespace ZLevels
                         FloodFillerFog.FloodUnfog(cell, mapToTeleport);
                     }
                 }
-                catch { };
+                catch (Exception ex) { };
             }
             FloodFillerFog.FloodUnfog(thingToTeleport.Position, mapToTeleport);
             mapToTeleport.fogGrid.FloodUnfogAdjacent(thingToTeleport.PositionHeld);
@@ -1549,7 +1549,7 @@ namespace ZLevels
                         FloodFillerFog.FloodUnfog(cell, mapToTeleport);
                     }
                 }
-                catch { };
+                catch (Exception ex) { };
             }
 
             FloodFillerFog.FloodUnfog(pawnToTeleport.Position, mapToTeleport);
@@ -1591,7 +1591,7 @@ namespace ZLevels
                     newMap = MapGenerator.GenerateMap(origin.Size, mapParent, mapParent.MapGeneratorDef, mapParent.ExtraGenStepDefs, null);
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 newMap = MapGenerator.GenerateMap(origin.Size, mapParent, mapParent.MapGeneratorDef, mapParent.ExtraGenStepDefs, null);
             }
@@ -1613,7 +1613,7 @@ namespace ZLevels
                 AdjustLowerMapGeneration(newMap);
 
             }
-            catch
+            catch (Exception ex)
             {
 
             }
@@ -1655,7 +1655,7 @@ namespace ZLevels
                         mapParent.ExtraGenStepDefs, null);
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 newMap = MapGenerator.GenerateMap(origin.Size, mapParent, mapParent.MapGeneratorDef,
                     mapParent.ExtraGenStepDefs, null);
@@ -1672,7 +1672,7 @@ namespace ZLevels
                     AdjustUpperMapGeneration(newMap);
                 }
             }
-            catch
+            catch (Exception ex)
             {
 
             }
@@ -1680,7 +1680,7 @@ namespace ZLevels
             {
                 newMap.terrainGrid.SetTerrain(playerStartSpot, ZLevelsDefOf.ZL_OutsideTerrainTwo);
             }
-            catch { }
+            catch (Exception ex) { }
 
             foreach (var intVec in newMap.AllCells)
             {
@@ -1723,7 +1723,7 @@ namespace ZLevels
                     }
                 }
             }
-            catch { };
+            catch (Exception ex) { };
         }
         public void AdjustUpperMapGeneration(Map map)
         {
@@ -1769,7 +1769,7 @@ namespace ZLevels
                                     terrainDef = rock2.def.building.naturalTerrain;
                                 }
                             }
-                            catch { };
+                            catch (Exception ex) { };
                             GenSpawn.Spawn(rock2.def, allCell, map);
                             if (SurroundedWithRock(allCell, map))
                             {
@@ -1780,7 +1780,7 @@ namespace ZLevels
                                 map.roofGrid.SetRoof(allCell, null);
                             }
                         }
-                        catch { };
+                        catch (Exception ex) { };
 
                     }
                     if (terrainDef != null)
@@ -1796,7 +1796,7 @@ namespace ZLevels
                 genStep_ScatterLumpsMineable.countPer10kCellsRange = new FloatRange(num3, num3);
                 genStep_ScatterLumpsMineable.Generate(map, default(GenStepParams));
             }
-            catch { };
+            catch (Exception ex) { };
         }
 
         private void ReCheckStairs(int tile)

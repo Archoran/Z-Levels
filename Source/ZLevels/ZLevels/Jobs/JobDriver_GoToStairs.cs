@@ -12,7 +12,7 @@ namespace ZLevels
         {
             return true;
         }
-        public override IEnumerable<Toil> MakeNewToils()
+        protected override IEnumerable<Toil> MakeNewToils()
         {
             yield return Toils_Goto.GotoThing(TargetIndex.A, PathEndMode.OnCell);
             Toil useStairs = Toils_General.Wait(60, 0);

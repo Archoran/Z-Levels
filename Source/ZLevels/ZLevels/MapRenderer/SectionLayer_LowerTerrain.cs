@@ -163,7 +163,7 @@ namespace ZLevels
                 }
                 base.FinalizeMesh(MeshParts.All);
             }
-            catch { };
+            catch (Exception ex) { };
 
         }
 

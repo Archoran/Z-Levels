@@ -1,6 +1,4 @@
-﻿using System;
-using System.Reflection;
-using HarmonyLib;
+﻿using HarmonyLib;
 using Multiplayer.API;
 using Verse;
 
@@ -11,6 +9,14 @@ namespace ZLevels
 	{
 		static MultiplayerSupport()
 		{
+			if (LoadedModManager.RunningModsListForReading.Any(pack => pack.PackageId == "rwmt.Multiplayer"))
+			{
+				EnableMultiplayerSupport();
+			}
+		}
+		
+		private static void EnableMultiplayerSupport()
+        {
 			if (!MP.enabled)
 			{
 				return;
@@ -18,9 +24,8 @@ namespace ZLevels
 			MP.RegisterSyncMethod(typeof(Building_StairsDown), "GiveJob", null);
 			MP.RegisterSyncMethod(typeof(Building_StairsUp), "GiveJob", null);
 			var method = AccessTools.Method(typeof(MapComponentZLevel), "MapComponentTick", null, null);
-			MultiplayerSupport.harmony.Patch(method, new HarmonyMethod(typeof(MultiplayerSupport), 
+			MultiplayerSupport.harmony.Patch(method, new HarmonyMethod(typeof(MultiplayerSupport),
 				"FixRNGPre", null), new HarmonyMethod(typeof(MultiplayerSupport), "FixRNGPos", null), null, null);
-
 		}
 
 		private static void FixRNGPre()

@@ -376,7 +376,7 @@ namespace ZLevels
                 {
                     for (int i = 0; i < curOpts.Count; i++)
                     {
-                        if (FloatMenuMap.OptionsMatch(opt, curOpts[i]))
+                        if (FloatMenuMap_Extensions.OptionsMatch(opt, curOpts[i]))
                         {
                             return true;
                         }
@@ -392,15 +392,15 @@ namespace ZLevels
                     Vector3 key = opt.revalidateClickTarget.Position.ToVector3Shifted();
                     key.z += (ZUtils.ZTracker.GetZIndexFor(opt.revalidateClickTarget.Map) - ZUtils.ZTracker.GetZIndexFor(Find.CurrentMap)) * 0.5f;
 
-                    if (!FloatMenuMap.cachedChoices.TryGetValue(key, out List<FloatMenuOption> value))
+                    if (!FloatMenuMap_Extensions.CachedChoices().TryGetValue(key, out List<FloatMenuOption> value))
                     {
                         List<FloatMenuOption> list = FloatMenuMakerMap.ChoicesAtFor(key, forPawn);
-                        FloatMenuMap.cachedChoices.Add(key, list);
+                        FloatMenuMap_Extensions.CachedChoices().Add(key, list);
                         value = list;
                     }
                     for (int j = 0; j < value.Count; j++)
                     {
-                        if (FloatMenuMap.OptionsMatch(opt, value[j]))
+                        if (FloatMenuMap_Extensions.OptionsMatch(opt, value[j]))
                         {
                             return !value[j].Disabled;
                         }
@@ -768,13 +768,13 @@ namespace ZLevels
                                                 {
                                                     if (oldPawnMap != otherMap)
                                                     {
-                                                        pawn.positionInt = ZUtils.GetCellToTeleportFrom(pawn.Map, pawn.Position, otherMap);
+                                                        pawn.PositionInt() = ZUtils.GetCellToTeleportFrom(pawn.Map, pawn.Position, otherMap);
                                                     }
                                                     else if (pawn.Position != oldPawnPosition)
                                                     {
-                                                        pawn.positionInt = oldPawnPosition;
+                                                        pawn.PositionInt() = oldPawnPosition;
                                                     }
-                                                    pawn.mapIndexOrState = (sbyte)Find.Maps.IndexOf(otherMap);
+                                                    pawn.MapIndexOrState() = (sbyte)Find.Maps.IndexOf(otherMap);
 
                                                     if (workGiver_Scanner is WorkGiver_Refuel scanner1)
                                                     {

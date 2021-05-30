@@ -25,7 +25,7 @@ namespace ZLevels
 
         public List<ZPathfinder.DijkstraGraph.Node> ActiveStairs;
 
-        public override IEnumerable<Toil> MakeNewToils()
+        protected override IEnumerable<Toil> MakeNewToils()
         {
             //have pawn, and  destination.
             //Check that pawn can reach  destination with Dijkstra.

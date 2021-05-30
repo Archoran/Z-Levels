@@ -179,7 +179,7 @@ namespace ZLevels
                 }
                 catch (Exception ex)
                 {
-                    //Log.Error("Error in Patch_SetRoof: " + ex);
+                    Log.Error("Error in Patch_SetRoof: " + ex);
                 };
             }
         }

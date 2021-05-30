@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Reflection;
 using RimWorld;
 using UnityEngine;
 using Verse;
@@ -36,6 +37,7 @@ namespace ZLevels
         }
 
         private static Dictionary<Thing, Dictionary<int, Graphic>> cachedGraphics = new Dictionary<Thing, Dictionary<int, Graphic>>();
+        private static readonly FieldInfo Graphic_RandomRotated_subGraphic = typeof(Graphic_RandomRotated).GetField("subGraphic", BindingFlags.NonPublic | BindingFlags.Instance);
         public void RenderPawnAt(Vector3 drawLoc, RotDrawMode bodyDrawType, bool headStump, bool invisible, int curLevel, int baseLevel)
         {
             if (!this.graphics.AllResolved)
@@ -81,11 +83,11 @@ namespace ZLevels
                         if (!graphics.TryGetValue(curLevel, out var graphic))
                         {
                             Vector2 drawSize = carriedThing.Graphic.drawSize;
-                            drawSize.x *= 1f - ((curLevel - baseLevel) / DrawDynamicThings.pawnDrawScale);
-                            drawSize.y *= 1f - ((curLevel - baseLevel) / DrawDynamicThings.pawnDrawScale);
+                            drawSize.x *= 1f - ((curLevel - baseLevel) / DynamicDrawManager_DrawDynamicThings_Patch.pawnDrawScale);
+                            drawSize.y *= 1f - ((curLevel - baseLevel) / DynamicDrawManager_DrawDynamicThings_Patch.pawnDrawScale);
                             if (carriedThing.Graphic is Graphic_RandomRotated graphicRandomRotated)
                             {
-                                graphic = graphicRandomRotated.subGraphic.GetCopy(drawSize);
+                                graphic = ((Graphic)Graphic_RandomRotated_subGraphic.GetValue(graphicRandomRotated)).GetCopy(drawSize);
                             }
                             else
                             {
@@ -166,7 +168,7 @@ namespace ZLevels
                 this.graphics.ResolveAllGraphics();
             }
 
-            float scaledSize = 1.5f * (1f - ((curLevel - baseLevel) / DrawDynamicThings.pawnDrawScale));
+            float scaledSize = 1.5f * (1f - ((curLevel - baseLevel) / DynamicDrawManager_DrawDynamicThings_Patch.pawnDrawScale));
 
             Quaternion quaternion = Quaternion.AngleAxis(angle, Vector3.up);
             Mesh mesh = null;
@@ -187,8 +189,8 @@ namespace ZLevels
                     else
                     {
                         Vector2 drawSize = this.graphics.nakedGraphic.drawSize;
-                        drawSize.x *= 1f - ((curLevel - baseLevel) / DrawDynamicThings.pawnDrawScale);
-                        drawSize.y *= 1f - ((curLevel - baseLevel) / DrawDynamicThings.pawnDrawScale);
+                        drawSize.x *= 1f - ((curLevel - baseLevel) / DynamicDrawManager_DrawDynamicThings_Patch.pawnDrawScale);
+                        drawSize.y *= 1f - ((curLevel - baseLevel) / DynamicDrawManager_DrawDynamicThings_Patch.pawnDrawScale);
                         var newGraphic = this.graphics.nakedGraphic.GetCopy(drawSize);
                         mesh = newGraphic.MeshAt(bodyFacing);
                     }
@@ -221,8 +223,8 @@ namespace ZLevels
             }
             if (this.graphics.headGraphic != null)
             {
-                Vector3 b = (quaternion * this.BaseHeadOffsetAt(headFacing)) * (1f - ((curLevel - baseLevel) / DrawDynamicThings.pawnDrawScale));
-                Material material = this.graphics.HeadMatAt(headFacing, bodyDrawType, headStump);
+                Vector3 b = (quaternion * this.BaseHeadOffsetAt(headFacing)) * (1f - ((curLevel - baseLevel) / DynamicDrawManager_DrawDynamicThings_Patch.pawnDrawScale));
+                Material material = this.graphics.HeadMatAt_NewTemp(headFacing, bodyDrawType, headStump);
                 if (material != null)
                 {
                     GenDraw.DrawMeshNowOrLater(new GraphicMeshSet(scaledSize).MeshAt(headFacing), a + b, quaternion, material, portrait);
@@ -259,7 +261,7 @@ namespace ZLevels
                 if (!flag && bodyDrawType != RotDrawMode.Dessicated && !headStump)
                 {
                     Mesh mesh3 = new GraphicMeshSet(scaledSize).MeshAt(headFacing);
-                    Material mat2 = this.graphics.HairMatAt(headFacing);
+                    Material mat2 = this.graphics.HairMatAt_NewTemp(headFacing);
                     GenDraw.DrawMeshNowOrLater(mesh3, loc2, quaternion, mat2, portrait);
                 }
             }
@@ -328,7 +330,7 @@ namespace ZLevels
                 {
                     num = (a - this.pawn.DrawPos).AngleFlat();
                 }
-                Vector3 drawLoc = rootLoc + new Vector3(0f, 0f, 0.4f).RotatedBy(num) * (1f - ((curLevel - baseLevel) / DrawDynamicThings.pawnDrawScale));
+                Vector3 drawLoc = rootLoc + new Vector3(0f, 0f, 0.4f).RotatedBy(num) * (1f - ((curLevel - baseLevel) / DynamicDrawManager_DrawDynamicThings_Patch.pawnDrawScale));
                 drawLoc.y += 0.03787879f;
                 this.DrawEquipmentAiming(this.pawn.equipment.Primary, drawLoc, num, curLevel, baseLevel);
                 return;
@@ -337,28 +339,28 @@ namespace ZLevels
             {
                 if (this.pawn.Rotation == Rot4.South)
                 {
-                    Vector3 drawLoc2 = rootLoc + new Vector3(0f, 0f, -0.22f) * (1f - ((curLevel - baseLevel) / DrawDynamicThings.pawnDrawScale));
+                    Vector3 drawLoc2 = rootLoc + new Vector3(0f, 0f, -0.22f) * (1f - ((curLevel - baseLevel) / DynamicDrawManager_DrawDynamicThings_Patch.pawnDrawScale));
                     drawLoc2.y += 0.03787879f;
                     this.DrawEquipmentAiming(this.pawn.equipment.Primary, drawLoc2, 143f, curLevel, baseLevel);
                     return;
                 }
                 if (this.pawn.Rotation == Rot4.North)
                 {
-                    Vector3 drawLoc3 = rootLoc + new Vector3(0f, 0f, -0.11f) * (1f - ((curLevel - baseLevel) / DrawDynamicThings.pawnDrawScale));
+                    Vector3 drawLoc3 = rootLoc + new Vector3(0f, 0f, -0.11f) * (1f - ((curLevel - baseLevel) / DynamicDrawManager_DrawDynamicThings_Patch.pawnDrawScale));
                     drawLoc3.y += 0f;
                     this.DrawEquipmentAiming(this.pawn.equipment.Primary, drawLoc3, 143f, curLevel, baseLevel);
                     return;
                 }
                 if (this.pawn.Rotation == Rot4.East)
                 {
-                    Vector3 drawLoc4 = rootLoc + new Vector3(0.2f, 0f, -0.22f) * (1f - ((curLevel - baseLevel) / DrawDynamicThings.pawnDrawScale));
+                    Vector3 drawLoc4 = rootLoc + new Vector3(0.2f, 0f, -0.22f) * (1f - ((curLevel - baseLevel) / DynamicDrawManager_DrawDynamicThings_Patch.pawnDrawScale));
                     drawLoc4.y += 0.03787879f;
                     this.DrawEquipmentAiming(this.pawn.equipment.Primary, drawLoc4, 143f, curLevel, baseLevel);
                     return;
                 }
                 if (this.pawn.Rotation == Rot4.West)
                 {
-                    Vector3 drawLoc5 = rootLoc + new Vector3(-0.2f, 0f, -0.22f) * (1f - ((curLevel - baseLevel) / DrawDynamicThings.pawnDrawScale));
+                    Vector3 drawLoc5 = rootLoc + new Vector3(-0.2f, 0f, -0.22f) * (1f - ((curLevel - baseLevel) / DynamicDrawManager_DrawDynamicThings_Patch.pawnDrawScale));
                     drawLoc5.y += 0.03787879f;
                     this.DrawEquipmentAiming(this.pawn.equipment.Primary, drawLoc5, 217f, curLevel, baseLevel);
                 }
@@ -404,16 +406,16 @@ namespace ZLevels
                 {
                     if (eq.Graphic is Graphic_RandomRotated graphicRandomRotated)
                     {
-                        Vector2 drawSize = graphicRandomRotated.subGraphic.drawSize;
-                        drawSize.x *= 1f - ((curLevel - baseLevel) / DrawDynamicThings.pawnDrawScale);
-                        drawSize.y *= 1f - ((curLevel - baseLevel) / DrawDynamicThings.pawnDrawScale);
-                        graphic = graphicRandomRotated.subGraphic.GetCopy(drawSize);
+                        Vector2 drawSize = ((Graphic)Graphic_RandomRotated_subGraphic.GetValue(graphicRandomRotated)).drawSize;
+                        drawSize.x *= 1f - ((curLevel - baseLevel) / DynamicDrawManager_DrawDynamicThings_Patch.pawnDrawScale);
+                        drawSize.y *= 1f - ((curLevel - baseLevel) / DynamicDrawManager_DrawDynamicThings_Patch.pawnDrawScale);
+                        graphic = ((Graphic)Graphic_RandomRotated_subGraphic.GetValue(graphicRandomRotated)).GetCopy(drawSize);
                     }
                     else
                     {
                         Vector2 drawSize = eq.Graphic.drawSize;
-                        drawSize.x *= 1f - ((curLevel - baseLevel) / DrawDynamicThings.pawnDrawScale);
-                        drawSize.y *= 1f - ((curLevel - baseLevel) / DrawDynamicThings.pawnDrawScale);
+                        drawSize.x *= 1f - ((curLevel - baseLevel) / DynamicDrawManager_DrawDynamicThings_Patch.pawnDrawScale);
+                        drawSize.y *= 1f - ((curLevel - baseLevel) / DynamicDrawManager_DrawDynamicThings_Patch.pawnDrawScale);
                         Log.Message("Get copy 2 from " + eq.Graphic);
                         graphic = eq.Graphic.GetCopy(drawSize);
                     }
@@ -426,16 +428,18 @@ namespace ZLevels
             Graphics.DrawMesh(mesh, matrix, matSingle, 0);
         }
 
+        private static readonly FieldInfo GraphicDatabase_allGraphics = typeof(GraphicDatabase).GetField("allGraphics", BindingFlags.NonPublic);
         public static Graphic GetGraphicRandomRotated(Thing thing, Graphic graphic, Type graphicClass, string path, Shader shader, Vector2 drawSize, Color color, Color colorTwo, GraphicData data, List<ShaderParameter> shaderParameters)
         {
             GraphicRequest graphicRequest = new GraphicRequest(graphicClass, path, shader, drawSize, color, colorTwo, data, 0, shaderParameters);
             graphicRequest.color = (Color32)graphicRequest.color;
             graphicRequest.colorTwo = (Color32)graphicRequest.colorTwo;
-            if (!GraphicDatabase.allGraphics.TryGetValue(graphicRequest, out Graphic value))
+            Dictionary<GraphicRequest, Graphic> allGraphics = (Dictionary<GraphicRequest, Graphic>) GraphicDatabase_allGraphics.GetValue(null);
+            if (!allGraphics.TryGetValue(graphicRequest, out Graphic value))
             {
-                value = new Graphic_RandomRotated((graphic as Graphic_RandomRotated).subGraphic, thing.def.graphicData.onGroundRandomRotateAngle);
+                value = new Graphic_RandomRotated(((Graphic)Graphic_RandomRotated_subGraphic.GetValue(graphic)), thing.def.graphicData.onGroundRandomRotateAngle);
                 value.Init(graphicRequest);
-                GraphicDatabase.allGraphics.Add(graphicRequest, value);
+                allGraphics.Add(graphicRequest, value);
             }
             return value;
         }

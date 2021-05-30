@@ -70,7 +70,7 @@ namespace ZLevels
         }
 
         [HarmonyPatch(typeof(JobGiver_AIFollowPawn), "TryGiveJob")]
-        public class JobGiver_AIFollowPawnPatch
+        public class JobGiver_AIFollowPawn_TryGiveJob_Patch
         {
             private static bool Prefix(JobGiver_AIFollowPawn __instance, ref Job __result, Pawn pawn)
             {
@@ -122,7 +122,7 @@ namespace ZLevels
                     {
                         ZLogger.Message("Searching follow job for " + pawn + " in " + ZTracker.GetMapInfo(otherMap)
                             + " for " + ZTracker.GetMapInfo(oldMap));
-                        result = JobGiver_AIFollowPawnPatch.TryGiveJob(pawn, __instance);
+                        result = JobGiver_AIFollowPawn_TryGiveJob_Patch.TryGiveJob(pawn, __instance);
                         if (result != null)
                         {
                             ZLogger.Message(pawn + " got follow job " + result + " - map: "
@@ -163,7 +163,7 @@ namespace ZLevels
                     return null;
                 }
                 Job job = JobMaker.MakeJob(JobDefOf.FollowClose, followee);
-                job.expiryInterval = __instance.FollowJobExpireInterval;
+                job.expiryInterval = __instance.Get_FollowJobExpireInterval();
                 job.checkOverrideOnExpire = true;
                 job.followRadius = radius;
                 return job;
@@ -241,7 +241,7 @@ namespace ZLevels
                             {
                                 intVec = RCellFinder.SpotToChewStandingNear(actor, actor.CurJob.GetTarget(TargetIndex.A).Thing);
                             }
-                            catch
+                            catch (Exception ex)
                             {
                                 intVec = actor.Position;
                             }
@@ -481,9 +481,14 @@ namespace ZLevels
         [HarmonyPatch(typeof(JobGiver_GetJoy), "TryGiveJob")]
         public class JobGiver_GetJoyPatch
         {
+            [HarmonyReversePatch]
+            private static Job TryGiveJob_Original(object instance, Pawn pawn)
+            {
+                throw new NotImplementedException("Harmony Reverse Patch");
+            }
+
             [HarmonyPrefix]
-            private static bool JobGiver_GetJoyPrefix(JobGiver_GetJoy __instance, ref Job __result,
-                 ref DefMap<JoyGiverDef, float> ___joyGiverChances, Pawn pawn)
+            private static bool JobGiver_GetJoyPrefix(JobGiver_GetJoy __instance, ref Job __result, Pawn pawn)
             {
                 try
                 {
@@ -549,12 +554,10 @@ namespace ZLevels
                     try
                     {
                         var jobList = new Dictionary<Job, Map>();
-                        bool CanDoDuringMedicalRest = __instance.CanDoDuringMedicalRest;
-                        bool InBed = pawn.InBed();
 
                         if (pawn.MentalStateDef != null)
                         {
-                            __result = TryGiveJob(pawn, CanDoDuringMedicalRest, InBed, ___joyGiverChances, __instance);
+                            __result = TryGiveJob_Original(__instance, pawn);
                             ZLogger.Pause(pawn + " in mental state, result: " + __result);
                             return false;
                         }
@@ -564,7 +567,7 @@ namespace ZLevels
                             ZLogger.Message("Searching joy job for " + pawn + " in " + ZTracker.GetMapInfo(otherMap)
                                 + " for " + ZTracker.GetMapInfo(oldMap));
 
-                            result = TryGiveJob(pawn, CanDoDuringMedicalRest, InBed, ___joyGiverChances, __instance);
+                            result = TryGiveJob_Original(__instance, pawn);
                             if (result != null)
                             {
                                 ZLogger.Message(pawn + " got joy job " + result + " - map: "
@@ -605,59 +608,6 @@ namespace ZLevels
                     Log.Error("Some kind of error occurred in Z-Levels JobManager: " + ex);
                 }
                 return true;
-            }
-            public static Job TryGiveJob(Pawn pawn, bool CanDoDuringMedicalRest, bool InBed, DefMap<JoyGiverDef, float> joyGiverChances, JobGiver_GetJoy __instance)
-            {
-                if (!CanDoDuringMedicalRest && InBed && HealthAIUtility.ShouldSeekMedicalRest(pawn))
-                {
-                    return null;
-                }
-                List<JoyGiverDef> allDefsListForReading = DefDatabase<JoyGiverDef>.AllDefsListForReading;
-                JoyToleranceSet tolerances = pawn.needs.joy.tolerances;
-                for (int i = 0; i < allDefsListForReading.Count; i++)
-                {
-                    JoyGiverDef joyGiverDef = allDefsListForReading[i];
-                    joyGiverChances[joyGiverDef] = 0f;
-                    if (pawn.needs.joy.tolerances.BoredOf(joyGiverDef.joyKind) || !joyGiverDef.Worker.CanBeGivenTo(pawn))
-                    {
-                        continue;
-                    }
-                    if (joyGiverDef.pctPawnsEverDo < 1f)
-                    {
-                        Rand.PushState(pawn.thingIDNumber ^ 0x3C49C49);
-                        if (Rand.Value >= joyGiverDef.pctPawnsEverDo)
-                        {
-                            Rand.PopState();
-                            continue;
-                        }
-                        Rand.PopState();
-                    }
-                    float num = tolerances[joyGiverDef.joyKind];
-                    float b = Mathf.Pow(1f - num, 5f);
-                    b = Mathf.Max(0.001f, b);
-                    joyGiverChances[joyGiverDef] = joyGiverDef.Worker.GetChance(pawn) * b;
-                }
-                for (int j = 0; j < joyGiverChances.Count; j++)
-                {
-                    if (!allDefsListForReading.TryRandomElementByWeight((JoyGiverDef d) => joyGiverChances[d], out JoyGiverDef result))
-                    {
-                        break;
-                    }
-                    try
-                    {
-                        Job job = __instance.TryGiveJobFromJoyGiverDefDirect(result, pawn);
-                        if (job != null)
-                        {
-                            return job;
-                        }
-                        joyGiverChances[result] = 0f;
-                    }
-                    catch (Exception ex)
-                    {
-                        Log.Error("Error in JobGiver_GetJoy: " + ex + " - " + result, true);
-                    }
-                }
-                return null;
             }
         }
 
@@ -706,7 +656,7 @@ namespace ZLevels
                                             ZLogger.Message("31 job.targetQueueB.countQueue: " + jobTracker.mainJob.countQueue[i]);
                                         }
                                     }
-                                    catch { }
+                                    catch (Exception ex) { }
 
                                     pawn.jobs.jobQueue.EnqueueLast(jobTracker.activeJobs[0]);
 
@@ -866,6 +816,13 @@ namespace ZLevels
         [HarmonyPatch(typeof(WorkGiver_InteractAnimal), "TakeFoodForAnimalInteractJob")]
         public class TakeFoodForAnimalInteractJob_Patch
         {
+            [HarmonyReversePatch]
+            public static Job TakeFoodForAnimalInteractJob_Original(object instance, Pawn pawn, Pawn tamee)
+            {
+                throw new NotImplementedException("Harmony Reverse Patch");
+            }
+
+
             public static bool recursiveTrap;
             private static void Postfix(WorkGiver_InteractAnimal __instance, ref Job __result, Pawn pawn, Pawn tamee)
             {
@@ -880,7 +837,7 @@ namespace ZLevels
                         {
                             var newPosition = ZUtils.GetCellToTeleportFrom(pawn.Map, pawn.Position, map);
                             ZUtils.TeleportThing(pawn, map, newPosition);
-                            var job = __instance.TakeFoodForAnimalInteractJob(pawn, tamee);
+                            var job = TakeFoodForAnimalInteractJob_Original(__instance, pawn, tamee);
                             if (job != null)
                             {
                                 __result = job;
@@ -1066,7 +1023,7 @@ namespace ZLevels
                     {
                         ZLogger.Message(___pawn + " got next job " + __result.Job);
                     }
-                    catch
+                    catch (Exception ex)
                     {
 
                     }
@@ -1085,7 +1042,7 @@ namespace ZLevels
                     {
                         ZLogger.Message(___pawn + " starts " + newJob);
                     }
-                    catch
+                    catch (Exception ex)
                     {
                         ZLogger.Message(___pawn + " starts " + newJob.def);
                     }
@@ -1111,7 +1068,7 @@ namespace ZLevels
                     {
                         ZLogger.Message(___pawn + " ends " + __instance.curJob + " - " + startNewJob);
                     }
-                    catch
+                    catch (Exception ex)
                     {
 
                     }
@@ -1229,15 +1186,18 @@ namespace ZLevels
                 }
                 return true;
             }
+            private static readonly AccessTools.FieldRef<WorkGiver_DoBill, IntRange> r_ReCheckFailedBillTicksRange = AccessTools.FieldRefAccess<WorkGiver_DoBill, IntRange>(AccessTools.Field(typeof(WorkGiver_DoBill), "ReCheckFailedBillTicksRange"));
+            private static readonly AccessTools.FieldRef<WorkGiver_DoBill, List<ThingCount>> r_chosenIngThings = AccessTools.FieldRefAccess<WorkGiver_DoBill, List<ThingCount>>(AccessTools.Field(typeof(WorkGiver_DoBill), "chosenIngThings"));
+
             private static Job StartOrResumeBillJob(WorkGiver_DoBill scanner, Pawn pawn, IBillGiver giver, JobTracker jobTracker)
             {
-                List<ThingCount> chosenIngThings = scanner.chosenIngThings;
+                ref List<ThingCount> chosenIngThings = ref r_chosenIngThings(scanner);
                 for (int i = 0; i < giver.BillStack.Count; i++)
                 {
                     Bill bill = giver.BillStack[i];
                     if ((bill.recipe.requiredGiverWorkType != null && bill.recipe.requiredGiverWorkType
                         != scanner.def.workType) || (Find.TickManager.TicksGame < bill.lastIngredientSearchFailTicks
-                        + WorkGiver_DoBill.ReCheckFailedBillTicksRange.RandomInRange
+                        + r_ReCheckFailedBillTicksRange().RandomInRange
                         && FloatMenuMakerMap.makingFor != pawn))
                     {
                         continue;
@@ -1261,15 +1221,15 @@ namespace ZLevels
                         {
                             if (bill_ProductionWithUft.BoundWorker == pawn && pawn.CanReserveAndReach(bill_ProductionWithUft.BoundUft, PathEndMode.Touch, Danger.Deadly) && !bill_ProductionWithUft.BoundUft.IsForbidden(pawn))
                             {
-                                return WorkGiver_DoBill.FinishUftJob(pawn, bill_ProductionWithUft.BoundUft, bill_ProductionWithUft);
+                                return WorkGiver_Extensions.FinishUftJob(pawn, bill_ProductionWithUft.BoundUft, bill_ProductionWithUft);
                             }
                             continue;
                         }
-                        UnfinishedThing unfinishedThing = WorkGiver_DoBill.ClosestUnfinishedThingForBill(pawn, bill_ProductionWithUft);
+                        UnfinishedThing unfinishedThing = WorkGiver_Extensions.ClosestUnfinishedThingForBill(pawn, bill_ProductionWithUft);
 
                         if (unfinishedThing != null)
                         {
-                            return WorkGiver_DoBill.FinishUftJob(pawn, unfinishedThing, bill_ProductionWithUft);
+                            return WorkGiver_Extensions.FinishUftJob(pawn, unfinishedThing, bill_ProductionWithUft);
                         }
                     }
 
@@ -1288,17 +1248,17 @@ namespace ZLevels
                         {
                             if (origBillGiverMap != map)
                             {
-                                workBench.positionInt = ZUtils.GetCellToTeleportFrom(workBench.Map, workBench.Position, map);
-                                pawn.positionInt = workBench.positionInt;
+                                workBench.PositionInt() = ZUtils.GetCellToTeleportFrom(workBench.Map, workBench.Position, map);
+                                pawn.PositionInt() = workBench.PositionInt();
                             }
                             else if (workBench.Position != origBillGiverPosition)
                             {
-                                workBench.positionInt = origBillGiverPosition;
-                                pawn.positionInt = origPawnPosition;
+                                workBench.PositionInt() = origBillGiverPosition;
+                                pawn.PositionInt() = origPawnPosition;
                             }
-                            workBench.mapIndexOrState = (sbyte)Find.Maps.IndexOf(map);
-                            pawn.mapIndexOrState = (sbyte)Find.Maps.IndexOf(map);
-                            flag = WorkGiver_DoBill.TryFindBestBillIngredients(bill, pawn, (Thing)giver, chosenIngThings);
+                            workBench.MapIndexOrState() = (sbyte)Find.Maps.IndexOf(map);
+                            pawn.MapIndexOrState() = (sbyte)Find.Maps.IndexOf(map);
+                            flag = WorkGiver_Extensions.TryFindBestBillIngredients(bill, pawn, (Thing)giver, chosenIngThings);
                             ZLogger.Message("Found ingredients: " + flag + " in " + ZTracker.GetMapInfo(map) + " for " + bill);
                             if (flag) break;
                         }
@@ -1653,7 +1613,6 @@ namespace ZLevels
 
             public static bool HasHaulJobOnThing(WorkGiver_Scanner scanner, Pawn pawn, Thing t, JobTracker jobTracker, bool forced = false)
             {
-                Map dest = null;
                 if (scanner is WorkGiver_HaulGeneral)
                 {
                     if (t is Corpse)
@@ -1890,17 +1849,17 @@ namespace ZLevels
                 {
                     if (oldThingMap != otherMap)
                     {
-                        t.positionInt = ZUtils.GetCellToTeleportFrom(t.Map, t.Position, otherMap);
-                        pawn.positionInt = t.positionInt;
+                        t.PositionInt() = ZUtils.GetCellToTeleportFrom(t.Map, t.Position, otherMap);
+                        pawn.PositionInt() = t.PositionInt();
                     }
                     else if (t.Position != oldThingPosition)
                     {
-                        t.positionInt = oldThingPosition;
-                        pawn.positionInt = oldPawnPosition;
+                        t.PositionInt() = oldThingPosition;
+                        pawn.PositionInt() = oldPawnPosition;
                     }
 
-                    t.mapIndexOrState = (sbyte)Find.Maps.IndexOf(otherMap);
-                    pawn.mapIndexOrState = (sbyte)Find.Maps.IndexOf(otherMap);
+                    t.MapIndexOrState() = (sbyte)Find.Maps.IndexOf(otherMap);
+                    pawn.MapIndexOrState() = (sbyte)Find.Maps.IndexOf(otherMap);
 
                     if (scanner.HasJobOnThing(pawn, t, forced))
                     {
@@ -1936,7 +1895,7 @@ namespace ZLevels
                 foreach (var otherMap in ZUtils.GetAllMapsInClosestOrderForTwoThings(pawn, oldMap1, oldPosition1,
                     pawn2, oldMap2, oldPosition2))
                 {
-                    thing = scanner.FindBed(pawn, pawn2);
+                    thing = RestUtility.FindBedFor(pawn, pawn2, pawn.HostFaction == pawn2.Faction, false);
                     if (thing != null) break;
                 }
 

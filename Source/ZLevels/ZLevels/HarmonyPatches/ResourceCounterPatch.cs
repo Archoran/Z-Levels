@@ -95,22 +95,20 @@ namespace ZLevels
                     {
                         yield return new CodeInstruction(OpCodes.Ldarg_1, null);
                         yield return new CodeInstruction(OpCodes.Ldarg_0, null);
+                        yield return new CodeInstruction(OpCodes.Ldloc_1);
                         yield return new CodeInstruction(OpCodes.Ldloc_S, 4);
                         yield return new CodeInstruction(OpCodes.Call, AccessTools.Method(
                             typeof(ProcessInput_Patch), "IfInResourceCounter", null));
                     }
                 }
-                IEnumerator<CodeInstruction> enumerator = null;
             }
 
-            public static bool IfInResourceCounter(bool __result, Event ev, Designator_Build instance, ThingDef thingDef2)
+            public static bool IfInResourceCounter(bool __result, Event ev, Designator_Build instance, ThingDef thingDef, ThingDef thingDef2)
             {
-                if (DebugSettings.godMode)
+                if (__result)
                 {
                     return true;
                 }
-                BuildableDef entDef = instance.entDef;
-                ThingDef thingDef = entDef as ThingDef;
                 if (thingDef2.IsStuff && thingDef2.stuffProps.CanMake(thingDef))
                 {
                     var ZTracker = ZUtils.ZTracker;

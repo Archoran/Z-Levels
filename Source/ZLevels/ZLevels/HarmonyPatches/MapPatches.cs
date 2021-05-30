@@ -84,7 +84,7 @@ namespace ZLevels
                         return false;
                     }
                 }
-                catch { };
+                catch (Exception ex) { };
                 return true;
             }
         }

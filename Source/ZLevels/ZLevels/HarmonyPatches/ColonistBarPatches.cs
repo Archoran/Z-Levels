@@ -12,27 +12,19 @@ using static RimWorld.ColonistBar;
 namespace ZLevels
 {
 
-    [HarmonyPatch(typeof(ColonistBarDrawLocsFinder), "CalculateColonistsInGroup")]
-    public static class CalculateColonistsInGroupPatches
+    [HarmonyPatch(typeof(ColonistBar), "Entries", MethodType.Getter)]
+    public static class ColonistBar_get_Entries_Patch
     {
-        [HarmonyPrefix]
-        public static void Prefix()
+        [HarmonyPostfix]
+        public static void OrderByZ(ref List<ColonistBar.Entry> __result)
         {
-            List<Entry> list = new List<Entry>();
-            try
-            {
-                list = Find.ColonistBar.cachedEntries.OrderBy(x => x.map != null ? ZUtils.ZTracker.GetZIndexFor(x.map) : 9999).ToList();
-            }
-            catch { }
-            finally 
-            {
-                Find.ColonistBar.cachedEntries = list;
-            }
+            __result = __result.OrderBy(x => x.map != null ? ZUtils.ZTracker.GetZIndexFor(x.map) : 9999).ToList();
         }
     }
 
     [HarmonyPatch(typeof(ColonistBar), "ColonistBarOnGUI")]
-    public static class ColonistBarOnGUIPatch
+    [StaticConstructorOnStartup]
+    public static class ColonistBar_ColonistBarOnGUI_Patch
     {
         public static Texture2D AbandonButtonTex = ContentFinder<Texture2D>.Get("UI/Buttons/Abandon", true);
         [HarmonyPrefix]
@@ -99,7 +91,7 @@ namespace ZLevels
                                             var file = new FileInfo(pathToDelete);
                                             file.Delete();
                                         }
-                                        catch
+                                        catch (Exception ex)
                                         {
 
                                         }
@@ -127,7 +119,7 @@ namespace ZLevels
                     }
                 }
             }
-            catch { };
+            catch (Exception ex) { };
         }
 
         private static bool ShowGroupFrames(List<Entry> entries)

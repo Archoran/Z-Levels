@@ -45,7 +45,7 @@ namespace ZLevels
             yield break;
         }
 
-        public override bool UseGenericEnterMapFloatMenuOption
+        protected override bool UseGenericEnterMapFloatMenuOption
         {
             get
             {
@@ -61,12 +61,16 @@ namespace ZLevels
 
         public override bool ShouldRemoveMapNow(out bool alsoRemoveWorldObject)
         {
-            alsoRemoveWorldObject = false;
-            bool result = false;
+            bool result;
             if (this.shouldBeDeleted)
             {
                 result = true;
                 alsoRemoveWorldObject = true;
+            }
+            else
+            {
+                result = false;
+                alsoRemoveWorldObject = false;
             }
             return result;
         }

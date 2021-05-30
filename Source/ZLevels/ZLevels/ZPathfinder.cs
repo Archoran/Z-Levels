@@ -176,7 +176,11 @@ namespace ZLevels.Properties
 
                     }
                 }
-                catch (NullReferenceException e)
+                catch (NullReferenceException ex)
+                {
+
+                }
+                catch (Exception ex)
                 {
 
                 }
@@ -214,7 +218,7 @@ namespace ZLevels.Properties
                         distances[neighbor] = source.neighborDistances[neighbor];
                     }
 
-                    bool found = false;
+                    //bool found = false;
                     Node u = source;
                     while (Q.Count > 0)
                     {

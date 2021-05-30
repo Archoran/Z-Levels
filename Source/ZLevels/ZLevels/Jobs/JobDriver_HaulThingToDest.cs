@@ -20,7 +20,7 @@ namespace ZLevels
             base.ExposeData();
             Scribe_References.Look(ref savedThing, "savedThing");
         }
-        public override IEnumerable<Toil> MakeNewToils()
+        protected override IEnumerable<Toil> MakeNewToils()
         {
             var ZTracker = ZUtils.ZTracker;
 

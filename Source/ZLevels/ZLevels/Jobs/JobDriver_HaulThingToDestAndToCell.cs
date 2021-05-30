@@ -58,7 +58,7 @@ namespace ZLevels
             }
         }
 
-        public override IEnumerable<Toil> MakeNewToils()
+        protected override IEnumerable<Toil> MakeNewToils()
         {
             this.FailOnDestroyedOrNull(TargetIndex.A);
             //this.FailOnBurningImmobile(TargetIndex.B);
