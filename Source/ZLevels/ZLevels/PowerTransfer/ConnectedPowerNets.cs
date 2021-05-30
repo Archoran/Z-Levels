@@ -23,11 +23,16 @@ namespace ZLevels
     [HarmonyPatch(typeof(PowerNet), "CurrentStoredEnergy")]
     public class CurrentStoredEnergy_Patch
     {
+        [HarmonyReversePatch]
+        private static float CurrentStoredEnergy_Original(object instance)
+        {
+            throw new NotImplementedException("Harmony Reverse Patch");
+        }
         private static bool Prefix(PowerNet __instance, ref float __result)
         {
             if (ZUtils.ZTracker.connectedPowerNets.connectedPowerNetsDict.TryGetValue(__instance, out ConnectedPowerNet connectedPowerNet))
             {
-                __result = connectedPowerNet.TotalStoredEnergy;
+                __result = connectedPowerNet.ConnectedPowerNets.Sum(x => CurrentStoredEnergy_Original(x));
                 return false;
             }
             return true;
@@ -95,14 +100,11 @@ namespace ZLevels
         public List<CompPowerZTransmitter> ConnectedTransmitters => connectedTransmitters;
         public HashSet<PowerNet> ConnectedPowerNets => ConnectedTransmitters.Select(x => x.PowerNet).ToHashSet();
         public float TotalEnergy => ConnectedPowerNets.Sum(x => x.CurrentEnergyGainRate() / CompPower.WattsToWattDaysPerTick);
-        public float TotalStoredEnergy => ConnectedPowerNets.Sum(x => CurrentStoredEnergy(x));
     }
     public class ConnectedPowerNets
     {
         public ConnectedPowerNets()
         {
-            powerNets = new Dictionary<int, ConnectedPowerNet>();
-            connectedPowerNetsDict = new Dictionary<PowerNet, ConnectedPowerNet>();
         }
         public void RegisterTransmitter(CompPowerZTransmitter comp)
         {
@@ -111,33 +113,33 @@ namespace ZLevels
             var upperMap = ZUtils.ZTracker.GetUpperLevel(comp.parent.Tile, comp.parent.Map);
             foreach (var powerNet in powerNets)
             {
-                if (!powerNet.Value.ConnectedTransmitters.Contains(comp))
+                if (!powerNet.ConnectedTransmitters.Contains(comp))
                 {
-                    if (powerNet.Value.ConnectedTransmitters.FirstOrDefault()?.PowerNet == comp.PowerNet)
+                    if (powerNet.ConnectedTransmitters.FirstOrDefault()?.PowerNet == comp.PowerNet)
                     {
-                        AddTransmitter(powerNet.Value, comp);
+                        AddTransmitter(powerNet, comp);
                         return;
                     }
                     if (lowerMap != null)
                     {
-                        var lowerComps = powerNet.Value.ConnectedTransmitters.Where(x => x.parent.Map == lowerMap);
+                        var lowerComps = powerNet.ConnectedTransmitters.Where(x => x.parent.Map == lowerMap);
                         foreach (var lowerComp in lowerComps)
                         {
                             if (lowerComp.parent.Position.DistanceTo(comp.parent.Position) < 3)
                             {
-                                AddTransmitter(powerNet.Value, comp);
+                                AddTransmitter(powerNet, comp);
                                 return;
                             }
                         }
                     }
                     if (upperMap != null)
                     {
-                        var upperComps = powerNet.Value.ConnectedTransmitters.Where(x => x.parent.Map == upperMap);
+                        var upperComps = powerNet.ConnectedTransmitters.Where(x => x.parent.Map == upperMap);
                         foreach (var upperComp in upperComps)
                         {
                             if (upperComp.parent.Position.DistanceTo(comp.parent.Position) < 3)
                             {
-                                AddTransmitter(powerNet.Value, comp);
+                                AddTransmitter(powerNet, comp);
                                 return;
                             }
                         }
@@ -150,7 +152,7 @@ namespace ZLevels
             }
             var connectedPowerNet = new ConnectedPowerNet(comp);
             AddTransmitter(connectedPowerNet, comp);
-            powerNets.Add(powerNets.Count + 1, connectedPowerNet);
+            powerNets.Add(connectedPowerNet);
         }
 
         public void AddTransmitter(ConnectedPowerNet connectedPowerNet, CompPowerZTransmitter compPowerZTransmitter)
@@ -160,10 +162,10 @@ namespace ZLevels
         }
         public void ChangePowerNet(CompPowerZTransmitter compPowerZTransmitter)
         {
-            var connectedPowerNet = powerNets.Where(x => x.Value.ConnectedPowerNets.Contains(compPowerZTransmitter.PowerNet)).FirstOrDefault();
-            if (connectedPowerNet.Value != null)
+            var connectedPowerNet = powerNets.Where(x => x.ConnectedPowerNets.Contains(compPowerZTransmitter.PowerNet)).FirstOrDefault();
+            if (connectedPowerNet != null)
             {
-                connectedPowerNetsDict[compPowerZTransmitter.PowerNet] = connectedPowerNet.Value;
+                connectedPowerNetsDict[compPowerZTransmitter.PowerNet] = connectedPowerNet;
             }
         }
         public void DeregisterTransmitter(CompPowerZTransmitter comp)
@@ -171,18 +173,18 @@ namespace ZLevels
             Log.Message("Deregistering: " + comp);
             foreach (var powerNet in powerNets)
             {
-                powerNet.Value.RemoveTransmitter(comp);
+                powerNet.RemoveTransmitter(comp);
             }
         }
         public void Tick()
         {
             foreach (var powerNet in powerNets)
             {
-                powerNet.Value.Tick();
+                powerNet.Tick();
             }
         }
 
-        public Dictionary<int, ConnectedPowerNet> powerNets = new Dictionary<int, ConnectedPowerNet>();
+        public List<ConnectedPowerNet> powerNets = new List<ConnectedPowerNet>();
         public Dictionary<PowerNet, ConnectedPowerNet> connectedPowerNetsDict = new Dictionary<PowerNet, ConnectedPowerNet>();
     }
 }
